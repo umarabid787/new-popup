@@ -1,28 +1,30 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 import {
   useStripe,
   useElements,
   CardElement,
   PaymentRequestButtonElement,
 } from "@stripe/react-stripe-js";
-import {  PaymentRequest } from '@stripe/stripe-js';
-
 
 const EmbeddedPaymentForm: React.FC = () => {
   const stripe = useStripe();
   const elements = useElements();
 
-  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null); // State to hold paymentRequest
+  const [paymentRequest, setPaymentRequest] = useState<any | null>(null); // State to hold paymentRequest
   const [canMakePayment, setCanMakePayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Setting up Payment Request for Google Pay
+  // Dynamically load Stripe and initialize Payment Request
   useEffect(() => {
-    if (stripe) {
-      const pr = stripe.paymentRequest({
+    const initStripe = async () => {
+      const stripeInstance = await loadStripe("pk_test_51PgM3ERrXZMuJmTGxuePJkqFCbXYgnV35djshusb2zYOQlydY7LqxBMVZJxYJ9zyCEOooyjo91mKyzf6TUERzvoz001jFYTYq6"); // Replace with your Stripe publishable key
+      if (!stripeInstance) return;
+
+      const pr = stripeInstance.paymentRequest({
         country: "US",
         currency: "usd",
         total: {
@@ -33,30 +35,29 @@ const EmbeddedPaymentForm: React.FC = () => {
         requestPayerEmail: true,
       });
 
-      // Check if Google Pay or other methods are available
-      pr.canMakePayment().then((result) => {
-        if (result) {
-          setPaymentRequest(pr); // Set the paymentRequest if available
-          setCanMakePayment(true);
-        }
-      });
+      const result = await pr.canMakePayment();
+      if (result) {
+        setPaymentRequest(pr);
+        setCanMakePayment(true);
+      }
 
       pr.on("paymentmethod", async (event) => {
         setIsProcessing(true);
         try {
-          // Handle the payment method server-side (simulated)
           event.complete("success");
           alert("Google Pay Payment Successful!");
-        } catch (error) {
-          console.error(error);
+        } catch (err) {
+          console.error(err);
           event.complete("fail");
           setErrorMessage("Google Pay Payment failed. Please try again.");
         } finally {
           setIsProcessing(false);
         }
       });
-    }
-  }, [stripe]);
+    };
+
+    initStripe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,11 +118,8 @@ const EmbeddedPaymentForm: React.FC = () => {
         <CardElement
           options={{
             style: {
-              
-            
               base: {
                 fontSize: "16px",
-                
                 color: "white",
                 "::placeholder": {
                   color: "#aab7c4",
@@ -145,7 +143,7 @@ const EmbeddedPaymentForm: React.FC = () => {
             border: "none",
             borderRadius: "4px",
             fontSize: "16px",
-            marginTop:"25px"
+            marginTop: "25px",
           }}
         >
           {isProcessing ? "Processing..." : "Pay $88"}
