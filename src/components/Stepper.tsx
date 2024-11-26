@@ -5,13 +5,17 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 // import EmbeddedPaymentForm from "../../../../components/StripeFields/EmbeddedPaymentForm";
 import { Elements } from "@stripe/react-stripe-js";
-import stripePromise from '../utils/stipe';
+
 // Import your existing components
 import CreateAccount from "./CreateAccount";
 import Thankyou from "./Thankyou";
 import EmbeddedPaymentForm from "./EmbeddedPaymentForm";
 // import { Elements } from "@stripe/react-stripe-js";
 // import stripePromise from "@/utils/stipe";
+import { loadStripe } from '@stripe/stripe-js';
+
+// Initialize Stripe with your publishable key
+const stripePromise = loadStripe('pk_test_51PgM3ERrXZMuJmTGxuePJkqFCbXYgnV35djshusb2zYOQlydY7LqxBMVZJxYJ9zyCEOooyjo91mKyzf6TUERzvoz001jFYTYq6'); // Replace with your own Stripe publishable key
 
 const steps = [
   { label: "Create Account", icon: "1" },
@@ -73,12 +77,13 @@ export default function IconBasedStepper() {
                   } } />
         )}
         {activeStep === 1 && (
+          <>
           <Elements stripe={stripePromise}>
             <Box>
               <h1>Stripe Payment Integration</h1>
               <EmbeddedPaymentForm />
             </Box>
-          </Elements>
+          </Elements>\</>
         )}
              {/* {activeStep === 1 && (
           <Thankyou open={false} onClose={function (): void {

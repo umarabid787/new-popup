@@ -35,11 +35,14 @@ const EmbeddedPaymentForm: React.FC = () => {
         requestPayerEmail: true,
       });
 
-      const result = await pr.canMakePayment();
-      if (result) {
-        setPaymentRequest(pr);
-        setCanMakePayment(true);
-      }
+  pr.canMakePayment().then((result) => {
+  console.log("Can Make Payment Result:", result);
+  if (result) {
+    setPaymentRequest(pr);
+    setCanMakePayment(true);
+  }
+});
+
 
       pr.on("paymentmethod", async (event) => {
         setIsProcessing(true);
